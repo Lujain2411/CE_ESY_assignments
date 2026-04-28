@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+
+// تعريف حجم المخزن وهيكل البيانات
+#define SIZE 10 
+
+typedef struct {
+    char buffer[SIZE];
+    int head;   // مؤشر القراءة
+    int tail;   // مؤشر الكتابة
+    int count;  // عدد العناصر الحالية
+} CircularBuffer;
+
+// دالة تهيئة المخزن
+void init(CircularBuffer *cb) {
+    cb->head = 0;
+    cb->tail = 0;
+    cb->count = 0;
+}
+
+// دالة التحقق من الامتلاء
+bool isFull(CircularBuffer *cb) {
+    return cb->count == SIZE;
+}
+
+// دالة التحقق من الفراغ
+bool isEmpty(CircularBuffer *cb) {
+    return cb->count == 0;
+}
+
+// دالة الكتابة في المخزن
+void write(CircularBuffer *cb, char data) {
+    if (isFull(cb)) {
+        printf("\n[Error] Buffer Overflow! Cannot write: %c\n", data);
+        return;
+    }
+    cb->buffer[cb->tail] = data;
+    cb->tail = (cb->tail + 1) % SIZE; // التحرك بشكل دائري
+    cb->count++;
+}
+
+// دالة القراءة من المخزن
+char read(CircularBuffer *cb) {
+    if (isEmpty(cb)) {
+        printf("\n[Error] Buffer Underflow!\n");
+        return '\0';
+    }
+    char data = cb->buffer[cb->head];
+    cb->head = (cb->head + 1) % SIZE; // التحرك بشكل دائري
+    cb->count--;
+    return data;
+}
+
+// الدالة الرئيسية
+int main() {
+    CircularBuffer cb;
+    init(&cb);
+
+    char name[50];
+    char suffix[] = "CE-ESY";
+    char fullName[100];
+
+    // 1. طلب الاسم من المستخدم
+    printf("Enter your name: ");
+    scanf("%s", name);
+
+    // 2. إضافة اللحقة المطلوبة
+    strcpy(fullName, name);
+    strcat(fullName, suffix);
+
+    printf("Full string to store: %s\n", fullName);
+    printf("Buffer Size: %d\n", SIZE);
+    printf("--------------------------\n");
+
+    // 3. تخزين الناتج في المخزن الدائري
+    for (int i = 0; i < strlen(fullName); i++) {
+        write(&cb, fullName[i]);
+    }
+
+    // 4. القراءة من المخزن والعرض على الشاشة
+    printf("Reading from buffer: ");
+    while (!isEmpty(&cb)) {
+        printf("%c", read(&cb));
+    }
+    printf("\n");
+
+    // 5. التأكد من حالة المخزن في النهاية
+    if (isEmpty(&cb)) {
+        printf("--------------------------\n");
+        printf("Buffer is now empty.\n");
+    }
+
+    return 0;
+}
